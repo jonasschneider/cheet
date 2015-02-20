@@ -8,7 +8,7 @@ you_author = ARGV.shift
 items = []
 seen_commits = {}
 
-class Work < Struct.new(:around_time, :duration)
+class Work < Struct.new(:around, :duration)
 end
 
 walker = Rugged::Walker.new(repo)
@@ -35,3 +35,9 @@ end
 
 p items.length
 p items.first(5)
+
+t = Time.now
+last_week_items = items.select { |i|
+  t - i.around < 86400*7
+}
+p "last week: #{(last_week_items.sum(&:duration)/(60*60)).round}h"
