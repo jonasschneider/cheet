@@ -1,0 +1,37 @@
+#!/usr/bin/env ruby
+
+require 'rugged'
+
+repo = Rugged::Repository.discover(ARGV.shift)
+you_author = ARGV.shift
+
+items = []
+seen_commits = {}
+
+class Work < Struct.new(:around_time, :duration)
+end
+
+walker = Rugged::Walker.new(repo)
+walker.sorting(Rugged::SORT_TOPO)
+
+repo.branches.each_name do |b|
+  walker.push(repo.branches[b].target_id)
+
+  walker.each { |c|
+    next if seen_commits[c.oid]
+    seen_commits[c.oid] = true
+
+    next unless c.parents[0]
+    diff = c.parents[0].diff(c)
+
+    next unless c.author[:email] == you_author
+
+    amt = diff.patch.length * 10 # let's say 10 seconds per character .. ? lol.
+
+    items << Work.new(c.time, amt)
+  }
+  walker.reset
+end
+
+p items.length
+p items.first(5)
