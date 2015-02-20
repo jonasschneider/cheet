@@ -39,8 +39,6 @@ repo.branches.each_name do |b|
   walker.reset
 end
 
-p items.length
-
 ((Date.today - n_days)..(Date.today)).each do |day|
   start = day.to_time
   stop = (day+1).to_time
