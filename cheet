@@ -3,8 +3,9 @@
 require 'rugged'
 require 'date'
 
-repo = Rugged::Repository.discover(ARGV.shift)
-you_author = ARGV.shift
+repo = Rugged::Repository.discover((ARGV.shift or raise "argc=3 pls"))
+you_author = (ARGV.shift or raise "argc=3 pls")
+n_days = (ARGV.shift or raise "argc=3 pls").to_i
 
 items = []
 seen_commits = {}
@@ -22,12 +23,12 @@ repo.branches.each_name do |b|
     next if seen_commits[c.oid]
     seen_commits[c.oid] = true
 
-    next unless c.parents[0]
+    next if c.parents.length != 1
     diff = c.parents[0].diff(c)
 
     next unless c.author[:email] == you_author
 
-    seconds_spent = diff.patch.length / 5
+    seconds_spent = diff.patch.length
 
     noise = rand * 300 - 150
 
@@ -40,7 +41,7 @@ end
 
 p items.length
 
-((Date.today - 7)..(Date.today)).each do |day|
+((Date.today - n_days)..(Date.today)).each do |day|
   start = day.to_time
   stop = (day+1).to_time
 
@@ -54,9 +55,16 @@ p items.length
     t = Time.at(weighted_around_avg)
     t_prime = t - duration_sum
 
+    # not so early
     if t_prime.hour < 8
       t += (8-t_prime.hour)*60*60
       t_prime += (8-t_prime.hour)*60*60
+    end
+
+    # not after midnight, lol
+    if t.hour < t_prime.hour
+      t_prime -= (t.hour+1.5)*60*60
+      t -= (t.hour+1.5)*60*60
     end
 
     t_end = Time.at(t.to_i - (t.to_i % (60*30)) + 60*30)
