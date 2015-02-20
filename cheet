@@ -1,6 +1,7 @@
 #!/usr/bin/env ruby
 
 require 'rugged'
+require 'date'
 
 repo = Rugged::Repository.discover(ARGV.shift)
 you_author = ARGV.shift
@@ -26,18 +27,41 @@ repo.branches.each_name do |b|
 
     next unless c.author[:email] == you_author
 
-    amt = diff.patch.length * 10 # let's say 10 seconds per character .. ? lol.
+    seconds_spent = diff.patch.length / 5
 
-    items << Work.new(c.time, amt)
+    noise = rand * 300 - 150
+
+    val = [60*60*4, [(seconds_spent+noise), 60*3].max].min
+
+    items << Work.new(c.time, val.round)
   }
   walker.reset
 end
 
 p items.length
-p items.first(5)
 
-t = Time.now
-last_week_items = items.select { |i|
-  t - i.around < 86400*7
-}
-p "last week: #{(last_week_items.sum(&:duration)/(60*60)).round}h"
+((Date.today - 7)..(Date.today)).each do |day|
+  start = day.to_time
+  stop = (day+1).to_time
+
+  items_on_day = items.select { |i| start < i.around && i.around < stop }
+
+  if items_on_day.any?
+    duration_sum = items_on_day.map(&:duration).reduce(:+)
+    weighted_around_sum = items_on_day.map{|i| i.around.to_i * i.duration }.reduce(:+)
+    weighted_around_avg = weighted_around_sum / duration_sum
+
+    t = Time.at(weighted_around_avg)
+    t_prime = t - duration_sum
+
+    if t_prime.hour < 8
+      t += (8-t_prime.hour)*60*60
+      t_prime += (8-t_prime.hour)*60*60
+    end
+
+    t_end = Time.at(t.to_i - (t.to_i % (60*30)) + 60*30)
+    t_start = Time.at(t_prime.to_i - (t_prime.to_i % (60*30)))
+
+    puts "#{day}: #{t_start.strftime("%H:%M")} -- #{t_end.strftime("%H:%M")}"
+  end
+end
