@@ -50,6 +50,8 @@ end
     weighted_around_sum = items_on_day.map{|i| i.around.to_i * i.duration }.reduce(:+)
     weighted_around_avg = weighted_around_sum / duration_sum
 
+    duration_sum = [60*60*10, duration_sum].min # cap at 10 hours
+
     t = Time.at(weighted_around_avg)
     t_prime = t - duration_sum
 
