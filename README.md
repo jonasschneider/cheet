@@ -2,7 +2,7 @@
 
 Generate questionable time sheets from Git commit logs.
 
-    $ ./cheet /.Trash/eclipseworkspace mail@jonasschneider.com 14     # repo, author, n_days
+    $ ./cheet /Trash/eclipse_workspace mail@jonasschneider.com
 
 *“It's not cheating unless you get caught.”*
 

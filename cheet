@@ -5,7 +5,7 @@ require 'date'
 
 repo = Rugged::Repository.discover((ARGV.shift or raise "argc=3 pls"))
 you_author = (ARGV.shift or raise "argc=3 pls")
-n_days = (ARGV.shift or raise "argc=3 pls").to_i
+n_days = (ARGV.shift||"14").to_i
 
 items = []
 seen_commits = {}
