@@ -18,26 +18,25 @@ walker.sorting(Rugged::SORT_TOPO)
 
 repo.branches.each_name do |b|
   walker.push(repo.branches[b].target_id)
-
-  walker.each { |c|
-    next if seen_commits[c.oid]
-    seen_commits[c.oid] = true
-
-    next if c.parents.length != 1
-    diff = c.parents[0].diff(c)
-
-    next unless c.author[:email] == you_author
-
-    seconds_spent = diff.patch.length
-
-    noise = rand * 300 - 150
-
-    val = [60*60*4, [(seconds_spent+noise), 60*3].max].min
-
-    items << Work.new(c.time, val.round)
-  }
-  walker.reset
 end
+
+walker.each { |c|
+  next if seen_commits[c.oid]
+  seen_commits[c.oid] = true
+
+  next if c.parents.length != 1
+  diff = c.parents[0].diff(c)
+
+  next unless c.author[:email] == you_author
+
+  seconds_spent = diff.patch.length
+
+  noise = rand * 300 - 150
+
+  val = [60*60*4, [(seconds_spent+noise), 60*3].max].min
+
+  items << Work.new(c.time, val.round)
+}
 
 ((Date.today - n_days)..(Date.today)).each do |day|
   start = day.to_time
